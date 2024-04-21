@@ -1,0 +1,8 @@
+db:
+  user: roots
+  host: ip container
+  pwd: pwd_database
+  database: database
+  max_connections: 500
+tables:
+  transact: transaction
