@@ -1,0 +1,52 @@
+version: "3.7"
+
+services:
+  bank:
+    image: golang:1.21
+    #build: .
+    command: sh ./run_server.sh
+    environment:
+        - TZ=Europe/Samara
+    volumes:
+        - .:/usr/src/app
+    ports:
+        - '3000:3000'
+    restart: always
+    networks:
+      webnet:
+        ipv4_address: 172.16.240.1
+  db:
+    image: postgres:12
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=postgres_passwd
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    shm_size: 1gb
+    volumes:
+      - ~/pgdataDocker:/var/lib/postgresql/data
+      - ./backups/postgredb.sql:/docker-entrypoint-initdb.d/a.sql
+      - type: bind
+        source: /etc/postgresql/12/main/pg_hba.conf
+        target: /var/lib/postgresql/data/config/pg_hba.conf
+    #ports:
+      #- "5433:5432"
+    networks:
+      webnet:
+        ipv4_address: 172.16.240.3
+        
+
+      
+networks:
+  webnet:
+    driver: bridge
+    name: web
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.240.0/24
+          #gateway: 172.16.240.1
+
+       
+

@@ -23,24 +23,60 @@ func handle_get_sum(c echo.Context) error {
 		return c.String(http.StatusForbidden, "access denied.")
 	}
 
-	json_map := make(map[string]interface{})
+	json_map := make(map[string]int)
 	err_decode := json.NewDecoder(c.Request().Body).Decode(&json_map)
 	if err_decode != nil {
 		return c.String(http.StatusForbidden, "Invalid body of request.")
 	}
 
+	GET_QUERY := fmt.Sprintf(`SELECT id, sum FROM %s`, Config.Config.Tables.Transact)
+	type SumData struct {
+		Id int
+		Sum int
+	}
+	
+
+
+	sum_request, err_sum := json_map["sum"]
+	if err_sum != true {
+		return c.String(http.StatusForbidden, "Request hasn't the sum.")
+	}
+	info := []SumData{}
+	err_select := Database.Select(&info, GET_QUERY)
+
+	if err_select != nil {
+		log.Error("Error select: %s", GET_QUERY)
+		return err_select
+	}
+	
+	sum_base := 0
 	switch role[0] {
 	case "client":
-		// пополняем значение sum из базы
-		// handle request for correct role from PostgreSQL
-		// Database.Select(role, ...)
-		//
+		UPDATE_QUERY := ""
+		if len(info) == 0 {
+			UPDATE_QUERY = fmt.Sprintf("INSERT INTO %s (sum) VALUES (%d)", Config.Config.Tables.Transact, sum_request)
+		}else{
+			sum_base = info[0].Sum // текущая сумма из базы
+			UPDATE_QUERY = fmt.Sprintf("UPDATE %s SET sum=%d", Config.Config.Tables.Transact, sum_base + sum_request)
+		}
+		Database.Exec(UPDATE_QUERY)
+		return c.String(http.StatusOK, "Sum was been changed.")
 	case "admin":
-		// вычитаем значение sum из базы
+		if len(info) == 0 {
+			return c.String(http.StatusForbidden, "Amount not paid")
+		}
+		sum_base = info[0].Sum // текущая сумма из базы
+		
+		if sum_request > sum_base {
+			return c.String(http.StatusForbidden, "Insufficient funds")
+		}
+		UPDATE_QUERY := fmt.Sprintf("UPDATE %s SET sum=%d", Config.Config.Tables.Transact, sum_base - sum_request)
+		Database.Query(UPDATE_QUERY)
+		return c.String(http.StatusOK, "Sum was been changed.")
 	default:
-		// pass
+		return c.String(http.StatusForbidden, "access denied.")
 	}
-	return c.String(http.StatusOK, "Test echo")
+	// return c.String(http.StatusOK, "Test echo")
 }
 
 func main() {
@@ -73,5 +109,5 @@ func main() {
 	e := echo.New()
 	e.GET("/bank", handle_get_sum)
 
-	e.Start(":8000")
+	e.Start("0.0.0.0:3000")
 }
