@@ -17,6 +17,7 @@ var Db *sqlx.DB
 func InitDatabase(conf Config.Cfg) error {
 	var my_str string = fmt.Sprintf("postgres://%s:%s@%s:%d/%s", conf.DB.User, conf.DB.Pwd, conf.DB.Host, conf.DB.Port, conf.DB.Database)
 	var err error
+	fmt.Println(my_str)
 	Db, err = sqlx.Connect("pgx", my_str)
 	Db.SetMaxOpenConns(Config.Config.DB.Max_Connections)
 	Db.SetMaxIdleConns(Config.Config.DB.Max_Connections)

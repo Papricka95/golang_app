@@ -1,8 +1,6 @@
 package main
 
 import (
-	// "github.com/labstack/echo"
-
 	"banks/Config"
 	"banks/Database"
 	"encoding/json"
@@ -23,8 +21,8 @@ func handle_get_sum(c echo.Context) error {
 		return c.String(http.StatusForbidden, "access denied.")
 	}
 
-	json_map := make(map[string]int)
-	err_decode := json.NewDecoder(c.Request().Body).Decode(&json_map)
+	data_request := make(map[string]int)
+	err_decode := json.NewDecoder(c.Request().Body).Decode(&data_request)
 	if err_decode != nil {
 		return c.String(http.StatusForbidden, "Invalid body of request.")
 	}
@@ -37,15 +35,15 @@ func handle_get_sum(c echo.Context) error {
 	
 
 
-	sum_request, err_sum := json_map["sum"]
-	if err_sum != true {
+	sum_request, err_sum := data_request["sum"]
+	if !err_sum {
 		return c.String(http.StatusForbidden, "Request hasn't the sum.")
 	}
 	info := []SumData{}
 	err_select := Database.Select(&info, GET_QUERY)
 
 	if err_select != nil {
-		log.Error("Error select: %s", GET_QUERY)
+		log.Errorf("Error select: %s", GET_QUERY)
 		return err_select
 	}
 	
@@ -76,11 +74,11 @@ func handle_get_sum(c echo.Context) error {
 	default:
 		return c.String(http.StatusForbidden, "access denied.")
 	}
-	// return c.String(http.StatusOK, "Test echo")
 }
 
 func main() {
 	// лог файл
+	fmt.Println("Start app")
 	file, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatal("Failed to open log file:", err)

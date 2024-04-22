@@ -1,11 +1,11 @@
 db:
   user: postgres
-  host: localhost
-  #host: 172.16.238.3
+  #host: localhost
+  host: 172.16.207.30
   pwd: postgres_passwd
   database: dbtask
+  #port: 5432
   port: 5432
-  #port: 5433
   max_connections: 500
 tables:
   transact: services

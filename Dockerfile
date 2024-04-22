@@ -1,11 +1,12 @@
-FROM golang:1.21
+FROM golang:1.21.9
 
-WORKDIR /app
+RUN go version
 
-COPY . .
+ENV GOPATH=/
 
-RUN go build -o app .
+COPY ./ ./
 
-EXPOSE 3000
+RUN go mod download
+RUN go build -o app ./main.go
 
 CMD ["./app"]
